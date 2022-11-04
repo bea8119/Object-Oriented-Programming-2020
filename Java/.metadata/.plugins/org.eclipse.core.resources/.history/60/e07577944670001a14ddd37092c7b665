@@ -1,0 +1,18 @@
+package university;
+
+public class Courses {
+	public String title;
+	public String teacher;
+	public int id;
+	
+	
+	public Courses(String title, String teacher, int id) {
+		this.title = title;
+		this.teacher = teacher;
+		this.id = id;
+	}
+	
+	
+	
+
+}

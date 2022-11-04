@@ -1,0 +1,635 @@
+package mountainhuts;
+
+import static java.util.stream.Collectors.toList;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
+
+/**
+ * Class {@code Region} represents the main facade
+ * class for the mountains hut system.
+ * 
+ * It allows defining and retrieving information about
+ * municipalities and mountain huts.
+ *
+ */
+public class Region {
+
+	/**
+	 * Create a region with the given name.
+	 * 
+	 * @param name
+	 *            the name of the region
+	 */
+	private String name;
+	private List<String> altituderanges=new ArrayList<String>();
+	private SortedMap<String, Municipality> municipalities= new TreeMap<String, Municipality>();
+	private SortedMap<String, MountainHut> mountainhuts= new TreeMap<String, MountainHut>();
+	
+	
+	public Region(String name) {
+		
+		this.name=name;
+	}
+
+	/**
+	 * Return the name of the region.
+	 * 
+	 * @return the name of the region
+	 */
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * Create the ranges given their textual representation in the format
+	 * "[minValue]-[maxValue]".
+	 * 
+	 * @param ranges
+	 *            an array of textual ranges
+	 */
+	public void setAltitudeRanges(String... ranges) {
+		
+		
+		for(String r: ranges) {
+			altituderanges.add(r);
+		}
+		
+		
+
+	}
+	
+
+	public List<String> getAltituderanges() {
+		
+		List<String> altranges=  new ArrayList( altituderanges);
+		
+		
+		return altranges;
+	}
+
+	/**
+	 * Return the textual representation in the format "[minValue]-[maxValue]" of
+	 * the range including the given altitude or return the default range "0-INF".
+	 * 
+	 * @param altitude
+	 *            the geographical altitude
+	 * @return a string representing the range
+	 */
+	public String getAltitudeRange(Integer altitude) {
+		Collections.sort(altituderanges);
+		String range = "0-INF";
+		String[] ranges_separate;
+		for(String r: altituderanges) {
+			ranges_separate= r.split("-");	
+			if(rangefind(Integer.parseInt(ranges_separate[0]), Integer.parseInt(ranges_separate[1]), altitude)== true ) {				
+				range=r;
+			}
+			
+		}
+		
+		
+		return range;
+	}
+	
+	public boolean rangefind(Integer low, Integer max, Integer altitude) {
+		boolean result=false;
+		
+		if( low<=altitude && max>=altitude) {
+			result=true;
+		}
+			
+		
+		return result;
+	}
+
+	/**
+	 * Create a new municipality if it is not already available or find it.
+	 * Duplicates must be detected by comparing the municipality names.
+	 * 
+	 * @param name
+	 *            the municipality name
+	 * @param province
+	 *            the municipality province
+	 * @param altitude
+	 *            the municipality altitude
+	 * @return the municipality
+	 */
+	public Municipality createOrGetMunicipality(String name, String province, Integer altitude) {
+		Municipality m;
+		
+		if(municipalities.containsKey(name)) {
+			m= municipalities.get(name);
+		}
+		else {
+			m= new Municipality(name, province, altitude);
+			municipalities.put(name, m);
+		}
+		
+		
+		return m;
+	}
+
+	/**
+	 * Return all the municipalities available.
+	 * 
+	 * @return a collection of municipalities
+	 */
+	public Collection<Municipality> getMunicipalities() {
+		
+		return municipalities.values();
+	}
+
+	/**
+	 * Create a new mountain hut if it is not already available or find it.
+	 * Duplicates must be detected by comparing the mountain hut names.
+	 *
+	 * @param name
+	 *            the mountain hut name
+	 * @param category
+	 *            the mountain hut category
+	 * @param bedsNumber
+	 *            the number of beds in the mountain hut
+	 * @param municipality
+	 *            the municipality in which the mountain hut is located
+	 * @return the mountain hut
+	 */
+	public MountainHut createOrGetMountainHut(String name, String category, 
+			Integer bedsNumber,	Municipality municipality) {
+		
+		MountainHut mh= createOrGetMountainHut(name, null, category, bedsNumber, municipality);
+				
+		return mh;
+	}
+
+	/**
+	 * Create a new mountain hut if it is not already available or find it.
+	 * Duplicates must be detected by comparing the mountain hut names.
+	 * 
+	 * @param name
+	 *            the mountain hut name
+	 * @param altitude
+	 *            the mountain hut altitude
+	 * @param category
+	 *            the mountain hut category
+	 * @param bedsNumber
+	 *            the number of beds in the mountain hut
+	 * @param municipality
+	 *            the municipality in which the mountain hut is located
+	 * @return a mountain hut
+	 */
+	public MountainHut createOrGetMountainHut(String name, Integer altitude, String category, Integer bedsNumber,
+			Municipality municipality) {
+		
+		MountainHut mh;
+		
+		if(mountainhuts.containsKey(name)) {
+			mh= mountainhuts.get(name);
+		}
+		else {
+			
+			mh= new MountainHut(name, altitude,  category,  bedsNumber, municipality);
+			
+			mountainhuts.put(name,  mh);
+		}
+		
+		
+		
+		// with stream
+		
+		
+		return mh;
+	}
+
+	/**
+	 * Return all the mountain huts available.
+	 * 
+	 * @return a collection of mountain huts
+	 */
+	public Collection<MountainHut> getMountainHuts() {
+		return mountainhuts.values();
+	}
+
+	/**
+	 * Factory methods that creates a new region by loadomg its data from a file.
+	 * 
+	 * The file must be a CSV file and it must contain the following fields:
+	 * <ul>
+	 * <li>{@code "Province"},
+	 * <li>{@code "Municipality"},
+	 * <li>{@code "MunicipalityAltitude"},
+	 * <li>{@code "Name"},
+	 * <li>{@code "Altitude"},
+	 * <li>{@code "Category"},
+	 * <li>{@code "BedsNumber"}
+	 * </ul>
+	 * 
+	 * The fields are separated by a semicolon (';'). The field {@code "Altitude"}
+	 * may be empty.
+	 * 
+	 * @param name
+	 *            the name of the region
+	 * @param file
+	 *            the path of the file
+	 */
+	public static Region fromFile(String name, String file) {
+		Region r= new Region(name);
+		List<String> data;
+		data = readData(file);
+		String[] headers = data.remove(0).split(";");
+		//System.out.println(headers);
+		
+		Map<String, Integer> headtoindex = new HashMap<>();
+		
+		for(int i=0; i<headers.length; i++) {
+			headtoindex.put(headers[i], i);
+		}
+		
+		data.forEach(l -> {
+							String[] rows= l.split(";");
+							
+							String province=rows[headtoindex.get("Province")];
+							String municipal=rows[headtoindex.get("Municipality")];
+							String municipalityAltitude=rows[headtoindex.get("MunicipalityAltitude")];
+							String Name=rows[headtoindex.get("Name")];
+							String altitude=rows[headtoindex.get("Altitude")];
+							String category=rows[headtoindex.get("Category")];
+							String bedsNumber=rows[headtoindex.get("BedsNumber")];
+			
+							Integer munalt= Integer.parseInt(municipalityAltitude);
+					Municipality municipality = r.createOrGetMunicipality(municipal, province, munalt);
+					
+					
+					Integer beds= Integer.parseInt(bedsNumber);
+					MountainHut mountainhut;
+					if(altitude.equals("")) {
+						
+						mountainhut = r.createOrGetMountainHut(Name, category, beds, municipality);
+					}
+					else {
+						Integer alt= Integer.parseInt(altitude);
+						mountainhut = r.createOrGetMountainHut(Name, alt, category, beds, municipality);
+					}
+								
+		});
+		
+				
+		return r;
+	}
+
+	/**
+	 * Internal class that can be used to read the lines of
+	 * a text file into a list of strings.
+	 * 
+	 * When reading a CSV file remember that the first line
+	 * contains the headers, while the real data is contained
+	 * in the following lines.
+	 * 
+	 * @param file the file name
+	 * @return a list containing the lines of the file
+	 */
+	@SuppressWarnings("unused")
+	private static List<String> readData(String file) {
+		try (BufferedReader in = new BufferedReader(new FileReader(file))) {
+			return in.lines().collect(toList());
+		} catch (IOException e) {
+			System.err.println(e.getMessage());
+			return null;
+		}
+	}
+
+	/**
+	 * Count the number of municipalities with at least a mountain hut per each
+	 * province.
+	 * 
+	 * @return a map with the province as key and the number of municipalities as
+	 *         value
+	 */
+	public Map<String, Long> countMunicipalitiesPerProvince() {
+		
+		
+		
+		return municipalities.values().stream()
+				.collect(Collectors.groupingBy(x -> x.getProvince()
+						, Collectors.counting()));			
+				
+		//Map<String, Long> count= new TreeMap<String, Long>();
+		 //long counter=0;
+		
+		/*for(String p: this.getProvinces()) {
+			
+			counter=0;
+			for(Municipality m: this.getMunicipalities()) {
+				
+				 
+				if(m.getProvince().equals(p)) 
+					counter++;		
+			}
+			//System.out.println(p+" : " +counter);
+			count.put(p, counter);
+			
+		}
+		
+		return count;*/
+	}
+	
+		/*public Collection<String> getProvinces() {
+			Collection<String> provinces = new ArrayList<String>();
+			
+			for(Municipality m: this.getMunicipalities()) {
+				String prov= m.getProvince();
+				if( provinces.contains(prov) == false) {
+					provinces.add(prov);
+				}
+			}
+		
+		
+		
+		return provinces;
+	} */
+
+	
+
+	/**
+	 * Count the number of mountain huts per each municipality within each province.
+	 * 
+	 * @return a map with the province as key and, as value, a map with the
+	 *         municipality as key and the number of mountain huts as value
+	 */
+	
+	public Map<String, Map<String, Long>> countMountainHutsPerMunicipalityPerProvince() {
+		
+		return mountainhuts.values().stream()
+				.collect(Collectors.groupingBy(x -> x.getMunicipality().getProvince(), 
+						Collectors.groupingBy(z ->z.getMunicipality().getName(), Collectors.counting())
+						)
+						);
+				
+		
+		/**
+		*Map<String, Long> mhPerMun = new TreeMap<String, Long>();
+		*Map<String, Map<String, Long>> count= new TreeMap<String, Map<String, Long>>();
+		*
+		*long counter=0;
+		*
+		*for(String p: this.getProvinces()) {
+		*	
+		*	
+		*	for(Municipality m: this.getMunicipalities()) {
+		*		//System.out.println(p+" / "+m.getProvince()+" : " +m.getName());
+		*		 
+		*		
+		*		if(m.getProvince().equals(p)) {
+		*			counter=0;
+		*			
+		*			for(MountainHut mh: this.getMountainHuts()) {
+		*				
+		*				if(mh.getMunicipality().equals(m)) 
+		*					counter++;
+		*				
+		*			}
+		*			mhPerMun.put(m.getName(), counter);
+		*			
+		*		}
+		*					
+		*	}
+		*	
+		*	count.put(p, mhPerMun);
+		*	
+		*}
+		*
+		*
+		*
+		*return count;
+		**/
+	}
+
+	/**
+	 * Count the number of mountain huts per altitude range. If the altitude of the
+	 * mountain hut is not available, use the altitude of its municipality.
+	 * 
+	 * @return a map with the altitude range as key and the number of mountain huts
+	 *         as value
+	 */
+	public Map<String, Long> countMountainHutsPerAltitudeRange() {
+		
+		
+		
+		Map<String, Long> res = mountainhuts.values().stream()
+				.collect(Collectors.groupingBy(x ->  getAltitudeRange(x), 
+						Collectors.counting()));
+		
+				altituderanges.stream()
+				.map(x -> x.toString())
+				.forEach(r -> res.putIfAbsent(r, 0L));
+				
+				return res;
+		
+		
+		
+		/**
+	    * Map<String, Long> count = new TreeMap<String, Long>();
+		*long counter=0;
+		*
+		*for(String a: this.getAltituderanges()) {
+		*	
+		*	counter=0;
+		*	for(MountainHut m: this.getMountainHuts()) {
+		*		
+		*		if(m.getAltitude().isPresent() == false) {
+		*			Integer alt= m.getMunicipality().getAltitude();
+		*			
+		*			if(a.equals(this.getAltitudeRange(alt))) 
+		*				counter++;					
+		*		}
+		*		else {
+		*			
+		*			Integer alt= m.getAltitudeint();
+		*			
+		*			if(a.equals(this.getAltitudeRange(alt))) 
+		*				counter++;	
+		*			
+		*		}
+		*		
+		*	}
+		*	
+		*	count.put(a, counter);
+		*	
+		*}
+		*	
+		*return count;
+		*
+		**/
+		
+	}
+	
+	public String getAltitudeRange(MountainHut m) {
+		
+		if(m.getAltitude().isPresent()) {
+			return getAltitudeRange(m.getAltitude().get());
+			
+		}
+		else {
+			return getAltitudeRange( m.getMunicipality().getAltitude());
+		}
+		
+		
+	}
+
+	/**
+	 * Compute the total number of beds available in the mountain huts per each
+	 * province.
+	 * 
+	 * @return a map with the province as key and the total number of beds as value
+	 */
+	public Map<String, Integer> totalBedsNumberPerProvince() {
+		
+		return mountainhuts.values().stream().collect(
+				Collectors.groupingBy(x -> x.getMunicipality().getProvince(), 
+						Collectors.summingInt(MountainHut::getBedsNumber)));
+		
+		 // OR 
+		
+		/*
+		 * return mountainhuts.values().stream().collect(
+		 * Collectors.groupingBy(x -> x.getMunicipality().getProvince(), 
+		 * Collectors.summingInt(x -> x.getBedsNumber()));
+		 * 
+		 * 
+		 */
+		
+		/*Map<String, Integer> count = new TreeMap<String, Integer>();
+		
+			Integer counter=0;
+		
+		for(String p: this.getProvinces()) {
+			
+			counter=0;
+			for(Municipality m: this.getMunicipalities()) {
+				//System.out.println(p+" / "+m.getProvince()+" : " +m.getName());
+				 
+				
+				if(m.getProvince().equals(p)) {
+					
+					
+					for(MountainHut mh: this.getMountainHuts()) {
+						
+						if(mh.getMunicipality().equals(m)) 
+							counter +=mh.getBedsNumber();
+						
+					}
+					
+					
+				}
+							
+			}
+			
+			count.put(p, counter);
+			
+		}
+		
+		*/
+		
+	}
+
+	/**
+	 * Compute the maximum number of beds available in a single mountain hut per
+	 * altitude range. If the altitude of the mountain hut is not available, use the
+	 * altitude of its municipality.
+	 * 
+	 * @return a map with the altitude range as key and the maximum number of beds
+	 *         as value
+	 */
+	public Map<String, Optional<Integer>> maximumBedsNumberPerAltitudeRange() {
+		
+		Map<String, Optional<Integer>> res =mountainhuts.values().stream()
+			.collect(Collectors.groupingBy(x -> getAltitudeRange(x),
+					Collectors.mapping(MountainHut::getBedsNumber , 
+							Collectors.maxBy(Comparator.naturalOrder()))));
+		
+		altituderanges.stream()
+		.map(x -> x.toString())
+		.forEach(r -> res.putIfAbsent(r, Optional.of(0) ));
+		
+		return res;
+		
+		/*
+		 * 
+		 * Map<String, Optional<Integer>> count = new TreeMap<String, Optional<Integer>>();
+		
+		Integer max= null;
+	
+			for(String a: this.getAltituderanges()) {
+			
+				max=0;
+			for(MountainHut m: this.getMountainHuts()) {
+				
+				if(m.getAltitude().isPresent() == false) {
+					Integer alt= m.getMunicipality().getAltitude();
+					
+					if(a.equals(this.getAltitudeRange(alt))) {
+						if(m.getBedsNumber()>max) {
+							max=m.getBedsNumber();
+						}
+					}
+											
+				}
+				else {
+					
+					Integer alt= m.getAltitudeint();
+					
+					if(a.equals(this.getAltitudeRange(alt))) {
+						if(m.getBedsNumber()>max) {
+							max=m.getBedsNumber();
+						}
+					}
+						
+					
+				}
+				
+			}
+			
+			count.put(a, Optional.ofNullable(max));
+			
+		}
+			
+		return count;
+		 * 
+		 */
+		
+	}
+
+	/**
+	 * Compute the municipality names per number of mountain huts in a municipality.
+	 * The lists of municipality names must be in alphabetical order.
+	 * 
+	 * @return a map with the number of mountain huts in a municipality as key and a
+	 *         list of municipality names as value
+	 */
+	public Map<Long, List<String>> municipalityNamesPerCountOfMountainHuts() {
+	
+		
+		 return mountainhuts.values().stream()
+		.collect(Collectors.groupingBy(x -> x.getMunicipality().getName() ,
+				Collectors.counting()))		
+		.entrySet().stream().collect(Collectors.groupingBy(
+				x -> x.getValue(), Collectors.mapping( x-> x.getKey(), toList() )
+				
+				));
+			
+	}
+
+}

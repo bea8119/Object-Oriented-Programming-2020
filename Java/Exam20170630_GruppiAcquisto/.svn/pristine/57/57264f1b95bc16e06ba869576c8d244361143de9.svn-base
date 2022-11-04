@@ -1,0 +1,144 @@
+package groups;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.Collections;
+import java.util.stream.*;
+
+
+public class GroupHandling {
+	
+	
+	public Map<String, List<Supplier>> products= new TreeMap<String, List<Supplier>>();
+	public Map<String, Supplier> suppliers = new TreeMap<String, Supplier>();
+	public Map<String, Group> groups = new TreeMap<String, Group>();
+	public List<Bid> bids= new LinkedList<Bid>();
+	
+	
+//R1	
+	public void addProduct (String productTypeName, String... supplierNames) 
+			throws GroupHandlingException {
+		
+		if(products.containsKey(productTypeName)) throw new GroupHandlingException();
+		
+		List<Supplier> supp= new ArrayList<Supplier>();
+		
+		for(String s : supplierNames ) {
+			
+			
+			if(!suppliers.containsKey(s)) {
+				Supplier supplier= new	Supplier(s);
+			supplier.addProduct(productTypeName);
+			supp.add(supplier);
+				suppliers.put(s, supplier);
+			}
+				
+			else
+				suppliers.get(s).addProduct(productTypeName);
+		}
+		products.put(productTypeName, supp);
+		
+	}
+	
+	public List<String> getProductTypes (String supplierName) {
+		return suppliers.get(supplierName).getProducts();
+	}
+	
+//R2	
+	public void addGroup (String name, String productName, String... customerNames) 
+			throws GroupHandlingException {
+		
+		if(!products.containsKey(productName) || groups.containsKey(name)) 
+				throw new GroupHandlingException();
+				
+		List<String> customer= new ArrayList<String>();
+		Collections.addAll(customer, customerNames);
+		
+		Group group = new Group(name, productName, customer);	
+		groups.put(name, group);
+		
+	}
+	
+	public List<String> getGroups (String customerName) {
+		return  groups.values().stream().filter(x-> x.getCustomers().contains(customerName))
+        		.map(Group::getName).collect(Collectors.toList());
+	}
+
+//R3
+	public void setSuppliers (String groupName, String... supplierNames)
+			throws GroupHandlingException {
+		
+		if(!groups.containsKey(groupName)) throw new GroupHandlingException();
+		Group g=groups.get(groupName);
+		String product= g.getProduct();
+		List<Supplier> supptoadd= new ArrayList<Supplier>();
+		
+		for(String s:supplierNames) {
+			if(!suppliers.containsKey(s)) throw new GroupHandlingException();
+			Supplier supp= suppliers.get(s);
+			if(!products.get(product).contains(supp)) throw new GroupHandlingException();
+		
+			supptoadd.add(supp);
+		}
+		
+		for(Supplier s: supptoadd)
+			g.addSupplier(s);
+				
+	}
+	
+	public void addBid (String groupName, String supplierName, int price)
+			throws GroupHandlingException {
+		
+		if(!groups.containsKey(groupName) || !suppliers.containsKey(supplierName)) 			
+			throw new GroupHandlingException();
+		Group g= groups.get(groupName);
+		Supplier s= suppliers.get(supplierName);
+		
+		if(!g.getSuppliers().contains(s))				
+				throw new GroupHandlingException();
+		
+		Bid b= new Bid(g, s, price);
+		bids.add(b);
+		
+	}
+	
+	public String getBids (String groupName) {
+		bids.stream().filter(x-> x.getGroup().getName().equals(groupName))
+				
+		;
+		
+        return null;
+	}
+	
+	
+//R4	
+	public void vote (String groupName, String customerName, String supplierName)
+			throws GroupHandlingException {
+	}
+	
+	public String  getVotes (String groupName) {
+        return null;
+	}
+	
+	public String getWinningBid (String groupName) {
+        return null;
+	}
+	
+//R5
+	public SortedMap<String, Integer> maxPricePerProductType() { //serve toMap
+        return null;
+	}
+	
+	public SortedMap<Integer, List<String>> suppliersPerNumberOfBids() {
+        return null;
+	}
+	
+	public SortedMap<String, Long> numberOfCustomersPerProductType() {
+        return null;
+	}
+	
+}

@@ -1,0 +1,283 @@
+package sports;
+import java.util.*;
+import java.util.stream.Collectors;
+
+
+/**
+ * Facade class for the research evaluation system
+ *
+ */
+public class Sports {
+	
+	private List<String> attivita_sportive;
+	private Map<String,Attivita> as;
+	private List<String> categorie;
+	private Map<String, Categoria> cat;
+	private Map<String, Prodotto> prodotti;
+	private List<Recenzione> recenzioni; 
+	private double media_stelle;
+	
+	public Sports() {
+		attivita_sportive = new LinkedList<>();
+		categorie = new LinkedList<>();
+		as = new HashMap<>();
+		cat = new HashMap<>();
+		prodotti = new HashMap<>();
+		recenzioni = new LinkedList<>();
+	}
+
+    //R1
+    /**
+     * Define the activities types treated in the portal.
+     * The method can be invoked multiple times to add different activities.
+     * 
+     * @param actvities names of the activities
+     * @throws SportsException thrown if no activity is provided
+     */
+    public void defineActivities (String... activities) throws SportsException {
+    	if(activities.length == 0 ) throw new SportsException("errore");
+    	for(int i=0; i<activities.length; i++) {
+    		Attivita a = new Attivita (activities[i]);
+    		attivita_sportive.add(activities[i]);
+    		as.put(activities[i], a);
+    	}
+    }
+
+    /**
+     * Retrieves the names of the defined activities.
+     * 
+     * @return activities names sorted alphabetically
+     */
+    public List<String> getActivities() {
+        return attivita_sportive;
+    }
+
+
+    /**
+     * Add a new category of sport products and the linked activities
+     * 
+     * @param name name of the new category
+     * @param activities reference activities for the category
+     * @throws SportsException thrown if any of the specified activity does not exist
+     */
+    public void addCategory(String name, String... linkedActivities) throws SportsException {
+    	Categoria c = new Categoria(name);
+    	categorie.add(name);
+    	for(int i=0 ; i< linkedActivities.length; i++) {
+    		if(!attivita_sportive.contains(linkedActivities[i])) throw new SportsException("errore");
+    		c.getAttivita_categoria().add(linkedActivities[i]);
+    		Attivita a = new Attivita(linkedActivities[i]);
+    		a.getCategorie_attivita().add(name);
+    		cat.put(name, c);
+    	}
+    }
+
+    /**
+     * Retrieves number of categories.
+     * 
+     * @return categories count
+     */
+    public int countCategories() {
+        return categorie.size();
+    }
+
+    /**
+     * Retrieves all the categories linked to a given activity.
+     * 
+     * @param activity the activity of interest
+     * @return list of categories (sorted alphabetically)
+     */
+    public List<String> getCategoriesForActivity(String activity) {
+    	if(!as.containsKey(activity)) return null;
+    	Attivita a = as.get(activity);
+    	if( a.getCategorie_attivita().size() ==0 ) return null;
+    	return a.getCategorie_attivita();
+    }
+
+    //R2
+    /**
+     * Add a research group and the relative disciplines.
+     * 
+     * @param name name of the research group
+     * @param disciplines list of disciplines
+     * @throws SportsException thrown in case of duplicate name
+     */
+    public void addProduct(String name, String activityName, String categoryName) throws SportsException {
+    	if(prodotti.containsKey(name)) throw new SportsException("errore");
+    	Prodotto p = new Prodotto(name,activityName, categoryName);
+    	prodotti.put(name, p);
+    	Categoria c = cat.get(categoryName);
+    	c.getProdotti_categoria().add(name);
+    	Attivita a = as.get(activityName);
+    	a.getProdotti_attivita().add(name);
+    	
+    }
+
+    /**
+     * Retrieves the list of products for a given category.
+     * The list is sorted alphabetically.
+     * 
+     * @param categoryName name of the category
+     * @return list of products
+     */
+    public List<String> getProductsForCategory(String categoryName){
+    	if(!cat.containsKey(categoryName)) return null;
+    	Categoria c = cat.get(categoryName);
+    	if(c.getProdotti_categoria().size() == 0) return null;
+        return c.getProdotti_categoria();
+    }
+
+    /**
+     * Retrieves the list of products for a given activity.
+     * The list is sorted alphabetically.
+     * 
+     * @param activityName name of the activity
+     * @return list of products
+     */
+    public List<String> getProductsForActivity(String activityName){
+    	if(!as.containsKey(activityName)) return null;
+    	Attivita a = as.get(activityName);
+    	if(a.getProdotti_attivita().size() == 0) return null;
+        return a.getProdotti_attivita();
+    }
+
+    /**
+     * Retrieves the list of products for a given activity and a set of categories
+     * The list is sorted alphabetically.
+     * 
+     * @param activityName name of the activity
+     * @param categoryNames names of the categories
+     * @return list of products
+     */
+    
+    public List<String> getProducts(String activityName, String... categoryNames){
+    	List<String> ris = new LinkedList<>();
+    	
+    	if(!as.containsKey(activityName)) return null;
+    	Attivita a = as.get(activityName);
+    	 	String[] prod_att = new String[ a.getProdotti_attivita().size() ];
+    	
+    	for(int i=0 ; i<prod_att.length; i++) { //per tutti i prodotti dell'attivita
+    		for(int k=0; k<categoryNames.length; k++) { //per tutte le attivita
+    		Categoria c = cat.get(categoryNames[k]);
+    		for(int j=0; j< c.getProdotti_categoria().size(); j++) { //per tutti prodotti di tutte le categorie
+    			String[] prod_cat = new String[c.getProdotti_categoria().size()];
+    			if( prod_att[i].equals(prod_cat[j]) )
+    					ris.add(prod_att[i]);
+    			}
+    		}
+    	}
+    	
+    	if(ris.size() == 0) return null;
+        return ris.stream().distinct().collect(Collectors.toList());
+    }
+
+    //    //R3
+    /**
+     * Add a new product rating
+     * 
+     * @param productName name of the product
+     * @param userName name of the user submitting the rating
+     * @param numStars score of the rating in stars
+     * @param comment comment for the rating
+     * @throws SportsException thrown numStars is not correct
+     */
+    public void addRating(String productName, String userName, int numStars, String comment) throws SportsException {
+    	if(numStars<0 || numStars >5) throw new SportsException("errore");
+    	Recenzione r = new Recenzione(productName, userName, numStars, comment);
+    	recenzioni.add(r);
+    	Prodotto p = prodotti.get(productName);
+    	Integer nr = p.getNum_rec();
+    	nr = nr+1;
+    	p.setNum_rec(nr);
+    }
+
+
+
+    /**
+     * Retrieves the ratings for the given product.
+     * The ratings are sorted by descending number of stars.
+     * 
+     * @param productName name of the product
+     * @return list of ratings sorted by stars
+     */
+    public List<String> getRatingsForProduct(String productName) {
+    	
+        return recenzioni.stream().sorted ( (a,b)-> b.getNum_stelle().compareTo(a.getNum_stelle()) )
+        		.map(x-> x.getNum_stelle() + " : [" + x.getCommento() + "]" ).collect(Collectors.toList());
+    }
+
+
+    //R4
+    /**
+     * Returns the average number of stars of the rating for the given product.
+     * 
+     * 
+     * @param productName name of the product
+     * @return average rating
+     */
+    public double getStarsOfProduct (String productName) {
+    	Prodotto p = prodotti.get(productName);
+        
+    	double ris = recenzioni.stream().filter(x-> x.getNome_prodotto().equals(productName))
+        		.map(x-> x.getNum_stelle())
+        		.collect(Collectors.averagingDouble(x-> x));
+    	
+    	p.setMedia_stelle(ris);
+    	return ris;
+    }
+
+    /**
+     * Computes the overall average stars of all ratings
+     *  
+     * @return average stars
+     */
+    public double averageStars() {
+        media_stelle = recenzioni.stream().map(x-> x.getNum_stelle()).collect(Collectors.averagingDouble(x-> x));
+        return media_stelle;
+    }
+
+    //R5 Statistiche
+    /**
+     * For each activity return the average stars of the entered ratings.
+     * 
+     * Activity names are sorted alphabetically.
+     * 
+     * @return the map associating activity name to average stars
+     */
+    public SortedMap<String, Double> starsPerActivity() {
+    
+       return prodotti.values().stream()
+       		.filter(x-> x.getNum_rec()>0)
+        		.sorted( (a,b) -> a.getNome_attivita().compareTo(b.getNome_attivita()))
+       		.collect(Collectors.groupingBy(x-> x.getNome_attivita(), TreeMap::new, Collectors.averagingDouble(x-> x.getMedia_stelle())));
+    
+    }
+
+    /**
+     * For each average star rating returns a list of
+     * the products that have such score.
+     * 
+     * Ratings are sorted in descending order.
+     * 
+     * @return the map linking the average stars to the list of products
+     */
+    public SortedMap<Double, List<String>> getProductsPerStars () {
+        return prodotti.values().stream().filter(x-> x.getMedia_stelle() == media_stelle)
+        		.filter(x-> x.getNum_rec()>0).
+        		sorted(
+        				(a,b) -> {
+       					if( a.getMedia_stelle()== b.getMedia_stelle() ) {
+        						return a.getNome_prodotto().compareTo(b.getNome_prodotto());
+      					}
+        					return  b.getMedia_stelle().compareTo( a.getMedia_stelle() );
+        			}).
+        		collect(Collectors.groupingBy(x-> x.getMedia_stelle(), TreeMap::new, 
+        				Collectors.mapping(x-> x.getNome_prodotto(), Collectors.toList()) ) );
+        		
+        	
+   
+     
+    }
+
+}

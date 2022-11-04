@@ -1,0 +1,43 @@
+package university;
+
+	 class Students {
+		 public String name;
+		 public String lastn;
+		 public int  ID;
+		 public Courses[] listCourses = new Courses[25];
+		 public int numcourses = 0;
+		 
+		public Students(String name, String lastn, int iD) {
+			this.name = name;
+			this.lastn = lastn;
+			ID = iD;
+		}
+		 
+		public void addCourse(Courses course) {
+			
+			
+			listCourses[numcourses++] = course;
+		}
+		
+
+		public String printstud() {
+			return this.ID + " " + this.name + " " + this.lastn;
+		}
+		
+		
+		
+		public String listCourse() {
+			public String rows = "";
+			
+			for(int i=0; i< numcourses; i++) {
+				rows= rows + listCourses[i].printcourse() + '\n';
+			}
+			return rows;
+		}
+		
+		
+		
+		 
+		
+
+}

@@ -1,0 +1,35 @@
+package university;
+
+public class Courses {
+	public String title;
+	public String teacher;
+	public int id;
+	public Students[] listStud = new Students[100];
+	public int nstud = 0;
+	
+	public Courses(String title, String teacher, int id) {
+		this.title = title;
+		this.teacher = teacher;
+		this.id = id;
+	}
+	public String printcourse() {
+		return this.id + " " + this.title + " " + this.teacher;
+	}
+	
+	public void addStud(Students student) {
+		
+		listStud[nstud++] = student;
+	}
+	
+	public String listStudents() {
+		String row = "";
+		
+		for(int i=0; i< numstud; i++) {
+			row= row + 
+		}
+	}
+	
+	
+	
+
+}

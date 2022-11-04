@@ -1,0 +1,24 @@
+package university;
+
+	 class Students {
+		 public String name;
+		 public String lastn;
+		 public int  ID;
+		 public Courses[] listCourses = new Courses[25];
+		 
+		public Students(String name, String lastn, int iD) {
+			this.name = name;
+			this.lastn = lastn;
+			ID = iD;
+		}
+		 
+		
+
+		
+		
+		
+		
+		 
+		
+
+}

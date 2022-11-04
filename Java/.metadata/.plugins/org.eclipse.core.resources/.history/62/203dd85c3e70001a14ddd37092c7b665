@@ -1,0 +1,27 @@
+package university;
+
+	 class Students {
+		 public String name;
+		 public String lastn;
+		 public int  ID;
+		public Students(String name, String lastn, int iD) {
+			this.name = name;
+			this.lastn = lastn;
+			ID = iD;
+		}
+		 
+		public String getStud() {
+			return ID + " " + name + " " + lastn ;
+			
+		}
+
+		public void setNameS(String name) {
+			this.name = name;
+		}
+		
+		
+		
+		 
+		
+
+}

@@ -1,0 +1,146 @@
+package university;
+
+/**
+ * This class represents a university education system.
+ * 
+ * It manages students and courses.
+ *
+ */
+public class University {
+
+	/**
+	 * Constructor
+	 * @param name name of the university
+	 */
+	  public String name;
+	  public String first;
+	  public String last;
+	  public Students[] studArray = new Students[1000];
+	  public int numstud = 0;
+	  public Courses[] coursesArray = new Courses[50];
+	  public int numcourses = 0;
+	
+	
+	public University(String name){
+		//TODO: to be implemented
+		this.name = name;
+	}
+	
+	/**
+	 * Getter for the name of the university
+	 * @return name of university
+	 */
+	public String getName(){
+		//TODO: to be implemented
+		
+		
+		return this.name;
+	}
+	
+	/**
+	 * Defines the rector for the university
+	 * 
+	 * @param first
+	 * @param last
+	 */
+	public void setRector(String first, String last){
+		//TODO: to be implemented
+		this.first = first;
+		this.last = last;
+	
+	}
+	
+	/**
+	 * Retrieves the rector of the university
+	 * 
+	 * @return
+	 */
+	public String getRector(){
+		//TODO: to be implemented
+		return this.first + " " + this.last;
+	}
+	
+	/**
+	 * Enroll a student in the university
+	 * 
+	 * @param first first name of the student
+	 * @param last last name of the student
+	 * @return
+	 */
+	public int enroll(String first, String last){
+		Students student = new Students(first, last, 10000+numstud);
+		studArray[numstud++]= student;
+		
+		return 10000+numstud-1;
+	}
+	
+	/**
+	 * Retrieves the information for a given student
+	 * 
+	 * @param id the id of the student
+	 * @return information about the student
+	 */
+	public String student(int id){
+		
+		return id + " " + studArray[id-10000].name + " " + studArray[id-10000].lastn;
+	}
+	
+	/**
+	 * Activates a new course with the given teacher
+	 * 
+	 * @param title title of the course
+	 * @param teacher name of the teacher
+	 * @return the unique code assigned to the course
+	 */
+	public int activate(String title, String teacher){
+		Courses course = new Courses(title, teacher, 10+numcourses);
+		coursesArray[numcourses++] = course;
+		
+		return 10+numcourses-1;
+	}
+	
+	/**
+	 * Retrieve the information for a given course
+	 * 
+	 * @param code unique code of the course
+	 * @return information about the course
+	 */
+	public String course(int code){
+		
+		return code + " " + coursesArray[code-10].title +" " + coursesArray[code-10].teacher ;
+	}
+	
+	/**
+	 * Register a student to attend a course
+	 * @param studentID id of the student
+	 * @param courseCode id of the course
+	 */
+	public void register(int studentID, int courseCode){
+		studArray[studentID-10000].addCourse(coursesArray[courseCode-10].title, coursesArray[courseCode-10].teacher, courseCode);
+		coursesArray[courseCode-10].addStud(studArray[studentID-10000].name, studArray[studentID-10000].lastn, studentID);
+		
+		
+	}
+	
+	/**
+	 * Retrieve a list of attendees
+	 * 
+	 * @param courseCode unique id of the course
+	 * @return list of attendees separated by "\n"
+	 */
+	public String listAttendees(int courseCode){
+		
+		return coursesArray[courseCode-10].listStud();
+	}
+
+	/**
+	 * Retrieves the study plan for a student
+	 * 
+	 * @param studentID id of the student
+	 * @return list of courses the student is registered for
+	 */
+	public String studyPlan(int studentID){
+		//TODO: to be implemented
+		return null;
+	}
+}

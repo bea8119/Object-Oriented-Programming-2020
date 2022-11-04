@@ -1,0 +1,37 @@
+package it.polito.oop.elective;
+
+import java.util.LinkedList;
+import java.util.List;
+
+public class Course {
+	
+	private String name;
+	private int npositions;
+	private List<Student> students= new LinkedList<Student>();
+	
+	
+	public Course(String name, int npositions) {		
+		this.name = name;
+		this.npositions = npositions;
+	}
+
+	public List<Student> getStudents() {
+		return students;
+	}
+
+	public void addStudent(Student student) {
+		this.students.add(student);
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public int getNpositions() {
+		return npositions;
+	}
+	
+	
+	
+
+}

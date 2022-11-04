@@ -1,0 +1,42 @@
+package groups;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.Comparator;
+
+public class Supplier {
+	
+	private String name;
+	private List<String> products = new LinkedList<String>();
+	
+	public Supplier(String name) {
+		this.name = name;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+
+	public List<String> getProducts() {
+		return products.stream().sorted().collect(Collectors.toList());
+	}
+
+	public void addProduct(String product) throws GroupHandlingException {
+		if(products.contains(product))	throw new GroupHandlingException();
+		
+		this.products.add(product);
+		
+		
+	}
+
+	@Override
+	public String toString() {
+		return "Supplier [name=" + name + "]";
+	}
+	
+	
+	
+
+}
